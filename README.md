@@ -1,117 +1,106 @@
-# 👻 Ghost — Dịch Vụ Di Chúc Tâm Hồn Trên GenLayer
+# Ghost · Conditional Inheritance Vault
 
-> **"Tiền bạc là vật ngoài thân, gia phong và nhân cách mới là gia tài vĩnh cửu."**
+Ghost dies without GenLayer because only Intelligent Contracts can:  
+1. inspect live web evidence about heirs on-chain,  
+1. let validators compare subjective AI judgment about integrity and values, and  
+1. still enforce deterministic payout guardrails that prevent the soul agent from draining the vault.
 
-**Ghost** là một Intelligent Contract tiên phong chạy trên nền tảng **GenLayer**, cho phép người dùng lập di chúc phân phối tài sản thừa kế dựa trên đánh giá nhân cách và giá trị sống của con cháu bởi một **AI Agent (Linh hồn số)** nhập vai người quá cố. 
+Ghost is a luxury dark-themed inheritance dApp where a deceased persona can converse with heirs and decide whether to release funds based on lifestyle alignment, public evidence, and family values.
 
-Khác với các hợp đồng thông minh truyền thống chỉ có thể thực thi theo các điều kiện cứng nhắc (như thời gian hoặc chữ ký số), Ghost sử dụng khả năng truy cập web phi tập trung và trí tuệ nhân tạo của GenLayer để đưa ra phán định mang tính nhân văn và đúng với mong muốn thực sự của người lập di chúc.
+## Core Fixes in This Resubmission
 
----
+1. `Address` parameters in public methods were replaced with `str` inputs plus internal `Address(...)` parsing.
+1. Direct transfer misuse was replaced with a pull-withdrawal pattern via `withdrawable_balance` and `withdraw()`.
+1. `run_nondet_unsafe` was replaced in the hot flows with `gl.eq_principle.prompt_comparative`.
+1. Unsafe `TreeMap[key]` reads in key flows were replaced with `.get(...)`.
+1. The frontend now includes contract health checks, a safer route structure, a demo gallery, and a dedicated treasury view.
 
-## 1. KIẾN TRÚC & VÒNG ĐỜI DI CHÚC
+## Product Surfaces
 
-Vòng đời của hợp đồng Ghost trải qua **3 giai đoạn** chính:
+1. `/`
+   Story-first landing page and submission framing.
+1. `/setup`
+   Owner setup wizard for persona, executor, guardrails, heirs, deposit, and seal flow.
+1. `/heir`
+   Conversation and petition dashboard for a registered heir.
+1. `/petition/latest`
+   Latest verdict card rendered from the most recent finalized petition receipt.
+1. `/executor`
+   Review surface for the planned override workflow.
+1. `/demo`
+   Demo family gallery with two sample scenarios.
+1. `/treasury`
+   Vault and connected-heir treasury breakdown.
 
-```mermaid
-stateDiagram-v2
-    [*] --> SETUP : Khởi tạo (Unsealed)
-    SETUP --> SETUP : owner cập nhật Persona, đăng ký Heir, nạp GEN
-    SETUP --> SEALED : seal_will() / force_seal_if_inactive()
-    SEALED --> ACTIVE : Kích hoạt "Linh hồn số"
-    ACTIVE --> ACTIVE : converse() (Trò chuyện ấm áp)
-    ACTIVE --> PETITION : petition() (Xin giải ngân)
-    PETITION --> ACTIVE : Đánh giá & chuyển tiền (nếu duyệt)
+## Contract Notes
+
+Main deployable entrypoint:
+
+- `contracts/ghost.py`
+
+Supporting documentation:
+
+- `docs/ARCHITECTURE.md`
+- `docs/ECONOMICS.md`
+- `docs/SECURITY.md`
+- `docs/SAMPLES.md`
+
+## Local Run
+
+```bash
+npm install
+npm run build
+npm run dev
 ```
 
-### 1.1. Giai đoạn 1: SETUP (Chưa niêm phong)
-*   **Mục đích**: Người lập di chúc (`owner`) thiết lập cấu trúc tài sản và gia phong.
-*   **Hành động**:
-    *   `add_to_persona(text)`: Nạp nhật ký, lời răn dạy, triết lý sống (sau này sẽ dùng làm prompt persona cho AI).
-    *   `set_limits(...)`: Đặt hạn mức rút tối đa cho mỗi lần yêu cầu (`max_per_request`), thời gian chờ giữa các lần giải ngân (`release_cooldown`), và chu kỳ điểm danh sống của chủ sở hữu (`inactivity_period`).
-    *   `register_heir(...)`: Đăng ký người thừa kế cùng hạn ngạch trần cả đời và liên kết URL mạng xã hội của họ.
-    *   `deposit()`: Nạp tài sản (coin GEN gốc) vào két bảo mật.
-    *   `heartbeat()`: Chủ sở hữu cập nhật bằng chứng còn sống.
+Environment:
 
-### 1.2. Giai đoạn 2: SEAL (Niêm phong / Người lập qua đời)
-*   **Mục đích**: Niêm phong toàn bộ thông tin cấu hình di chúc. Sau khi niêm phong, Persona và thông tin người thừa kế là **bất biến**, không thể chỉnh sửa.
-*   **Cơ chế kích hoạt**:
-    *   Chủ sở hữu hoặc Người thực thi di chúc (`executor`) gọi `seal_will()`.
-    *   **Dead-man's switch**: Nếu chủ sở hữu không gọi `heartbeat()` trong suốt khoảng thời gian `inactivity_period`, bất kỳ ai cũng có thể gọi `force_seal_if_inactive()` để cưỡng chế niêm phong.
-
-### 1.3. Giai đoạn 3: ACTIVE (Đang vận hành)
-*   **Mục đích**: Linh hồn số hoạt động, tương tác trực tiếp với con cháu để quyết định phân bổ tài sản.
-*   **Hành động**:
-    *   `converse(message)`: Trò chuyện tâm sự không xin tiền. AI nhập vai linh hồn ông/cha phản hồi ấm áp, chia sẻ dựa trên ký ức cũ.
-    *   `petition(message, requested_amount)`: Yêu cầu giải ngân một khoản tiền thừa kế.
-
----
-
-## 2. SƠ ĐỒ FLOW PHÁN QUYẾT GIẢI NGÂN
-
-Khi người thừa kế gửi yêu cầu xin tiền qua hàm `petition()`, quy trình xử lý diễn ra như sau:
-
-```mermaid
-graph TD
-    A[Heir gọi petition] --> B{Kiểm tra Điều kiện Cứng}
-    B -->|Sai Cooldown / Vượt hạn mức| C[Revert Transaction]
-    B -->|Thỏa mãn| D[run_nondet_unsafe]
-    
-    D --> E[web.render: Đọc MXH người thừa kế]
-    E --> F[exec_prompt: AI Nhập vai & Đánh giá]
-    F --> G{Đạt tiêu chuẩn gia phong?}
-    
-    G -->|Từ chối| H[Trả về thông điệp khuyên bảo ấm áp]
-    G -->|Đồng ý| I[Đề xuất số tiền duyệt]
-    
-    H --> J[Lưu log hội thoại]
-    I --> K{Áp dụng Guardrails On-Chain}
-    
-    K --> L[amount_final = min_of_all]
-    L --> M[Chuyển coin GEN thực qua emit_transfer]
-    M --> J
+```bash
+cp .env.example .env
 ```
 
-### 🛡️ Guardrails deterministic an toàn tuyệt đối
-Dù AI Agent có toàn quyền đánh giá ngữ cảnh, nhưng quyết định giải ngân tài sản thực tế bị giới hạn cứng bằng code on-chain không thể bị phá vỡ bởi LLM:
-$$\text{amount\_final} = \min(\text{amount\_approved\_by\_AI}, \text{remaining\_heir\_allocation}, \text{max\_per\_request}, \text{total\_vault\_balance})$$
+Set:
 
----
+```bash
+VITE_CONTRACT_ADDRESS=0xYOUR_DEPLOYED_CONTRACT
+```
 
-## 3. THIẾT KẾ VALUE & QUYỀN RIÊNG TƯ TRÊN GENLAYER
+## GenLayer Flow
 
-### 3.1. Cơ chế chuyển giao tài sản (Value Transfer)
-*   **Nạp tiền**: Sử dụng decorator `@gl.public.write.payable` để nhận coin GEN gửi từ ví ngoại vi. Lượng coin nạp được ghi nhận thông qua `gl.message.value`.
-*   **Rút tiền**: Khi AI chấp thuận giải ngân, hợp đồng sử dụng `gl.get_contract_at(sender)` để khởi tạo đối tượng đích và gọi `emit_transfer(value=amount_final, on='finalized')` để tự động chuyển coin GEN gốc on-chain về tài khoản người thừa kế.
+Deploy:
 
-### 3.2. Quyền riêng tư của Dữ liệu (Privacy)
-> [!WARNING]
-> Mọi dữ liệu lưu trữ trực tiếp trên chuỗi khối của GenLayer đều mang tính chất **công khai** (public).
-> 
-> Khuyến nghị người dùng **không lưu trữ nhật ký cá nhân nhạy cảm ở dạng thô (plaintext)** lên `soul_persona`. Thay vào đó:
-> 1. Chỉ đưa lên các giá trị gia đình cốt lõi, lời khuyên răn đã lọc.
-> 2. Lưu trữ dữ liệu gốc off-chain hoặc mã hóa, chỉ chuyển tải dạng tóm tắt phi nhạy cảm lên chuỗi để AI Agent tham chiếu.
+```bash
+python3 scripts/deploy.py
+```
 
----
+Seed sample family:
 
-## 4. HƯỚNG DẪN DEPLOY TRÊN GENLAYER STUDIO
+```bash
+python3 scripts/seed_demo_family.py <contract-address> --sample family_scenario_1.json
+```
 
-Để triển khai dự án này lên GenLayer Studio (`https://studio.genlayer.com/run-debug`), hãy tuân thủ quy trình khuyến nghị:
+## Tests
 
-1.  **Chuẩn bị môi trường**:
-    *   Mở GenLayer Studio.
-    *   Đi tới **Settings -> Reset Storage -> Confirm** để làm sạch trạng thái lưu trữ cũ.
-    *   Thực hiện **Hard Refresh** trình duyệt (ví dụ: `Cmd + Shift + R` trên MacOS) để tránh lỗi cache.
-2.  **Deploy `storage_test.py`**:
-    *   Upload và deploy file `contracts/storage_test.py` trước để kiểm tra tính sẵn sàng của Studio.
-    *   Sau khi giao dịch hoàn thành (`Status: FINALIZED`), click vào transaction ở sidebar để chắc chắn `Result: SUCCESS`.
-3.  **Deploy `ghost.py`**:
-    *   Upload và deploy file hợp đồng chính `contracts/ghost.py`.
-    *   Đảm bảo transaction báo `Result: SUCCESS`.
-4.  **Chạy kịch bản Demo**:
-    *   **Setup**: Từ tài khoản `owner`, gọi `add_to_persona("Gia đình ta coi trọng sự tự lập và nỗ lực...")`.
-    *   **Limits**: Gọi `set_limits` với các thông số thử nghiệm (ví dụ: `max_per_request=100000`, `release_cooldown=60` (1 phút), `inactivity_period=3600`).
-    *   **Register**: Gọi `register_heir` đăng ký một địa chỉ ví của con cháu, đặt `social_json` ở dạng mảng JSON ví dụ: `'["https://api.github.com/users/octocat"]'`.
-    *   **Deposit**: Gửi coin GEN vào hợp đồng thông qua hàm `deposit()` (bật payable gửi GEN).
-    *   **Seal**: Gọi `seal_will()` để khóa di chúc.
-    *   **Test Trò chuyện**: Chuyển sang tài khoản người thừa kế vừa đăng ký, gọi `converse("Con nhớ cha")`. Kiểm tra `get_convo_log` để xem phản hồi ấm áp từ linh hồn.
-    *   **Test Giải ngân**: Gọi `petition("Con xin tiền đóng học phí", 50000)`. Kiểm tra tiền đã chuyển và log được cập nhật. Gọi lại `petition` ngay sau đó để kiểm tra lỗi cooldown chặn thành công.
+The repository includes pytest-style GenLayer direct mode tests under `tests/`.
+
+Planned command:
+
+```bash
+pytest tests -v
+```
+
+## Demo Scenarios
+
+1. `docs/samples/family_scenario_1.json`
+   Traditional father with three heirs.
+1. `docs/samples/family_scenario_2.json`
+   Integrity-focused tycoon with two heirs.
+
+## Solidity vs GenLayer
+
+| Question | Solidity only | Ghost on GenLayer |
+| --- | --- | --- |
+| Read live public evidence | No | Yes |
+| Make subjective moral judgment | No | Yes |
+| Keep final payout deterministic | Yes | Yes |
+| Combine both in one contract system | No | Yes |
