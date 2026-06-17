@@ -1,0 +1,34 @@
+{
+  "id": "family-b",
+  "title": "Integrity Tycoon / Two Heirs",
+  "executor": "0xc5429c556df21c332a34d5d03bbfd35619e55232",
+  "persona_lines": [
+    "Character matters more than prestige.",
+    "Public service and transparent work should be rewarded.",
+    "Scandal and entitlement should reduce discretionary inheritance."
+  ],
+  "limits": {
+    "max_per_request_wei": "2000000000000000000",
+    "release_cooldown": 172800,
+    "inactivity_period": 2592000
+  },
+  "heirs": [
+    {
+      "address": "0x4444444444444444444444444444444444444444",
+      "name": "Elena",
+      "allocation_wei": "8000000000000000000",
+      "socials": [
+        "https://github.com/octocat",
+        "https://www.linkedin.com/in/example-elena"
+      ]
+    },
+    {
+      "address": "0x5555555555555555555555555555555555555555",
+      "name": "Victor",
+      "allocation_wei": "4000000000000000000",
+      "socials": [
+        "https://github.com/mojombo"
+      ]
+    }
+  ]
+}

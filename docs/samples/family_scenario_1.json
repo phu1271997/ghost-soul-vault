@@ -1,0 +1,42 @@
+{
+  "id": "family-a",
+  "title": "Traditional Father / Three Heirs",
+  "executor": "0xc5429c556df21c332a34d5d03bbfd35619e55232",
+  "persona_lines": [
+    "I value education, honest work, and humility.",
+    "Inheritance should build independence, not reward waste.",
+    "Family support should encourage long-term responsibility."
+  ],
+  "limits": {
+    "max_per_request_wei": "1000000000000000000",
+    "release_cooldown": 86400,
+    "inactivity_period": 2592000
+  },
+  "heirs": [
+    {
+      "address": "0x1111111111111111111111111111111111111111",
+      "name": "Minh",
+      "allocation_wei": "5000000000000000000",
+      "socials": [
+        "https://github.com/octocat",
+        "https://www.linkedin.com/in/example-minh"
+      ]
+    },
+    {
+      "address": "0x2222222222222222222222222222222222222222",
+      "name": "Lan",
+      "allocation_wei": "3000000000000000000",
+      "socials": [
+        "https://github.com/defunkt"
+      ]
+    },
+    {
+      "address": "0x3333333333333333333333333333333333333333",
+      "name": "Khoa",
+      "allocation_wei": "2000000000000000000",
+      "socials": [
+        "https://github.com/mojombo"
+      ]
+    }
+  ]
+}
