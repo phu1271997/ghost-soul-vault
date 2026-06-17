@@ -62,7 +62,7 @@ cp .env.example .env
 Set:
 
 ```bash
-VITE_CONTRACT_ADDRESS=0xYOUR_DEPLOYED_CONTRACT
+VITE_CONTRACT_ADDRESS=0x2b5d8c969d12cfdb6d4f269f032245753bd9f6adde7c961dcdf411b22fd68953
 ```
 
 ## GenLayer Flow
